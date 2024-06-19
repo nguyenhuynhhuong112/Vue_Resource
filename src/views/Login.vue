@@ -1,5 +1,5 @@
 <template>
-  <div class=" min-h-screen flex items-center justify-center">
+  <div class="min-h-screen flex items-center justify-center">
     <div
       class="w-96 p-4 bg-gray-100 rounded-xl justify-center flex items-center flex-col"
     >
@@ -62,11 +62,10 @@
     </div>
   </div>
 </template>
-<script lang="ts" >
+<script lang="js" >
 import { reactive } from "vue";
 import { Form, Button, Input, Checkbox } from "ant-design-vue";
 import { LockOutlined, MailOutlined } from "@ant-design/icons-vue";
-import { IUser } from "common/types";
 import { useRouter } from "vue-router";
 import { onMounted, ref } from "vue";
 import axios from "axios";
@@ -82,48 +81,45 @@ export default {
     MailOutlined,
     LockOutlined,
   },
-  setup() {
-    const router = useRouter();
-    interface FormState {
-      username: string;
-      password: string;
-      remember: boolean;
+  data(){
+    return{
+      formState: {
+        email: "",
+        password: "",
+        remember: true,
+      },
+      dataUser: []
     }
-    onMounted(() => {
-      localStorage.clear();
-      loadDataUser()
-    });
-    const formState = reactive<FormState>({
-      username: "",
-      password: "",
-      remember: true,
-    });
-    const dataUser = ref<IUser[]>([]);
-    const loadDataUser = async()=>{
+  },
+  methods:{
+    async loadDataUser (){
       const response = await axios.get("https://667054bc0900b5f8724a3ee9.mockapi.io/user/user");
-      dataUser.value = response.data;
-    }
-    const onFinish = (values: any) => {
-      const findEmail = dataUser.value.find(
-        (user: IUser) => user.email === values.email
+      this.dataUser = response.data;
+    },
+     onFinish  (values)  {
+      const findEmail = this.dataUser.find(
+        (user) => user.email === values.email
       );
       if (findEmail) {
         if (findEmail.password === values.password) {
           localStorage.setItem("email", values.email);
           localStorage.setItem("role", String(findEmail.role));
-          router.push("/");
+          this.$router.push("/");
         } else {
           alert("Password is incorrect");
         }
       } else {
         alert("Email is incorrect");
       }
-    };
-
-    const onFinishFailed = (errorInfo: any) => {
+    },
+    onFinishFailed  (errorInfo) {
       console.log("Failed:", errorInfo);
-    };
-    return { formState, onFinish, onFinishFailed };
+    }
   },
+  created(){
+    this.loadDataUser(),
+    localStorage.clear()
+  },
+ 
 };
 </script>

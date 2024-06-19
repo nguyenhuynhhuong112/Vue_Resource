@@ -48,17 +48,9 @@
   </a-form>
 </template>
 
-<script lang="ts">
-import { reactive, ref } from "vue";
-import {
-  Form,
-  Input,
-  Button,
-  Radio,
-  RadioGroup,
-  InputPassword,
-  InputNumber,
-} from "ant-design-vue";
+<script>
+import { Form, Input, Button, InputNumber } from "ant-design-vue";
+
 export default {
   name: "FormAddProduct",
   components: {
@@ -66,9 +58,6 @@ export default {
     AFormItem: Form.Item,
     AInput: Input,
     AButton: Button,
-    ARadio: Radio,
-    ARadioGroup: RadioGroup,
-    AInputPassword: InputPassword,
     AInputNumber: InputNumber,
   },
   props: {
@@ -77,58 +66,52 @@ export default {
       required: true,
     },
   },
-  setup(props) {
-    const layout = {
-      labelCol: { span: 8 },
-      wrapperCol: { span: 16 },
-    };
-
-    const validateMessages = {
-      required: "${label} is required!",
-      types: {
-        name: "${label} is not a valid email!",
-        number: "${label} is not a valid number!",
-      },
-    };
-
-    const formState = reactive({
-      product: {
-        name: "",
-        type: "",
-        price: 0,
-        website: "",
-      },
-    });
-
-    const formRef = ref();
-
-    const onFinish = (values: any) => {
-      props.onProductAdded(values.product);
-      formRef.value.resetFields();
-    };
-    const validatePrice = (rule: any, value: any, callback: any) => {
-      if (value <= 0) {
-        callback(new Error("Price must be greater than 0"));
-      } else {
-        callback();
-      }
-    };
-    const validateWebsite = (rule: any, value: any, callback: any) => {
-      if (!value.includes(".com")) {
-        callback(new Error("Website must contain '.com'"));
-      } else {
-        callback();
-      }
-    };
+  data() {
     return {
-      layout,
-      validateMessages,
-      formState,
-      validateWebsite,
-      formRef,
-      onFinish,
-      validatePrice,
+      layout: {
+        labelCol: { span: 8 },
+        wrapperCol: { span: 16 },
+      },
+      validateMessages: {
+        required: "${label} is required!",
+        types: {
+          name: "${label} is not a valid email!",
+          number: "${label} is not a valid number!",
+        },
+      },
+      formState: {
+        product: {
+          name: "",
+          type: "",
+          price: 0,
+          website: "",
+        },
+      },
     };
+  },
+  methods: {
+    onFinish(values) {
+      this.onProductAdded(values.product);
+      this.$refs.formRef.resetFields();
+    },
+    validatePrice(rule, value) {
+      return new Promise((resolve, reject) => {
+        if (value <= 0) {
+          reject(new Error("Price must be greater than 0"));
+        } else {
+          resolve();
+        }
+      });
+    },
+    validateWebsite(rule, value) {
+      return new Promise((resolve, reject) => {
+        if (!value.includes(".com")) {
+          reject(new Error("Website must contain '.com'"));
+        } else {
+          resolve();
+        }
+      });
+    },
   },
 };
 </script>

@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="flex flex-col justify-start min-h-screen w-full mx-2 overflow-y-auto"
-  >
+  <div class="flex flex-col justify-start min-h-screen w-full mx-2 overflow-y-auto">
     <div class="flex justify-between p-2">
       <h1 class="text-xl font-bold">User Management Page</h1>
       <a-button @click="showModal" type="primary">Add User</a-button>
@@ -12,9 +10,7 @@
     <a-table :dataSource="dataSource" :columns="columns">
       <template #action="{ record }">
         <a-button @click="showUserId(record)" type="primary">Delete</a-button>
-        <a-button class="ml-2" @click="editUser(record)" type="default"
-          >Update</a-button
-        >
+        <a-button class="ml-2" @click="editUser(record)" type="default">Update</a-button>
       </template>
     </a-table>
     <a-modal v-model:open="deleteUser" title="Delete User" @ok="handleOk">
@@ -25,8 +21,8 @@
     </a-modal>
   </div>
 </template>
-<script lang="ts">
-import { onMounted, ref } from "vue";
+
+<script lang="js">
 import {
   Table,
   Button,
@@ -39,7 +35,6 @@ import {
 } from "ant-design-vue";
 import FormAddUserVue from "@/components/addUser/FormAddUser.vue";
 import axios from "axios";
-import { IUser } from "common/types";
 
 export default {
   name: "Admin",
@@ -55,31 +50,60 @@ export default {
     ARadioGroup: RadioGroup,
     AInputPassword: InputPassword,
   },
-  setup() {
-    const open = ref<boolean>(false);
-    const deleteUser = ref<boolean>(false);
-    const edit = ref<boolean>(false);
-    const dataSource = ref<IUser[]>();
-    const tempEmail = ref<string>("");
-
-    const showModal = () => {
-      open.value = true;
+  data() {
+    return {
+      open: false,
+      deleteUser: false,
+      edit: false,
+      dataSource: [],
+      tempEmail: "",
+      findUser: null,
+      columns: [
+        {
+          title: "Email",
+          dataIndex: "email",
+          key: "email",
+        },
+        {
+          title: "First Name",
+          dataIndex: "firstName",
+          key: "firstName",
+        },
+        {
+          title: "Last Name",
+          dataIndex: "lastName",
+          key: "lastName",
+        },
+        {
+          title: "User Name",
+          dataIndex: "username",
+          key: "username",
+        },
+        {
+          title: "Role",
+          dataIndex: "role",
+          key: "role",
+        },
+        {
+          title: "Action",
+          key: "action",
+          slots: { customRender: "action" },
+        },
+      ],
     };
-
-    const loadData = async () => {
+  },
+  methods: {
+    showModal() {
+      this.open = true;
+    },
+    async loadData() {
       const response = await axios.get(
         "https://667054bc0900b5f8724a3ee9.mockapi.io/user/user"
       );
-      dataSource.value = response.data;
-    };
-
-    onMounted(() => {
-      loadData();
-    });
-
-    const handleUserAdded = async (newUser: any) => {
+      this.dataSource = response.data;
+    },
+    async handleUserAdded(newUser) {
       const { resource, checkPass, ...restNewUser } = newUser;
-
       const updateUser = {
         ...restNewUser,
         role:
@@ -91,8 +115,10 @@ export default {
         firstName: newUser.name.substring(0, newUser.name.lastIndexOf(" ")),
         lastName: newUser.name.substring(newUser.name.lastIndexOf(" ") + 1),
       };
-      const findUser = dataSource.value?.find(
-        (user: IUser) => user.email === updateUser.email || user.username === updateUser.username
+      const findUser = this.dataSource.find(
+        (user) =>
+          user.email === updateUser.email ||
+          user.username === updateUser.username
       );
       if (findUser) {
         alert("User already exists");
@@ -102,118 +128,67 @@ export default {
         "https://667054bc0900b5f8724a3ee9.mockapi.io/user/user",
         updateUser
       );
-      open.value = false;
+      this.open = false;
       if (response.status === 201) {
-        await loadData();
+        alert("Add success");
+        await this.loadData();
       } else {
         alert("Add fail");
       }
-    };
-
-    const findUser = ref<IUser | null>(null);
-
-    const showUserId = async (record: any) => {
-      deleteUser.value = true;
-      findUser.value = dataSource.value?.find(
-        (user: IUser) => user.id === record.id
+    },
+    async showUserId(record) {
+      this.deleteUser = true;
+      this.findUser =
+        this.dataSource.find((user) => user.id === record.id) || null;
+    },
+    async editUser (record)  {
+      this.edit = true;
+      this.findUser = this.dataSource.find(
+        (user) => user.id === record.id
       ) || null;
-    };
-
-    const editUser = async (record: any) => {
-      edit.value = true;
-      findUser.value = dataSource.value?.find(
-        (user: IUser) => user.id === record.id
-      ) || null;
-      if (findUser.value) {
-        tempEmail.value = findUser.value.email;
+      if (this.findUser) {
+        this.tempEmail = this.findUser.email;
       }
-    };
-
-    const handleOk = async () => {
-      if (!findUser.value) return;
-      const id = findUser.value.id;
+    },
+    async handleOk  () {
+      if (!this.findUser) return;
+      const id = this.findUser.id;
       const response = await axios.delete(
         `https://667054bc0900b5f8724a3ee9.mockapi.io/user/user/${id}`
       );
       if (response.status === 200) {
         alert("Delete success");
-        deleteUser.value = false;
-        dataSource.value = dataSource.value?.filter(
-          (user: IUser) => user.id !== findUser.value?.id
+        this.deleteUser = false;
+        this.dataSource = this.dataSource.filter(
+          (user) => user.id !== this.findUser.id
         );
       } else {
         alert("Delete fail");
       }
-    };
-
-    const handleEdit = async () => {
-      if (!findUser.value) return;
+    },
+    async handleEdit ()  {
+      if (!this.findUser) return;
       const updatedUser = {
-        ...findUser.value,
-        email: tempEmail.value,
+        ...this.findUser,
+        email: this.tempEmail,
       };
-      const id = findUser.value.id;
+      const id = this.findUser.id;
       const response = await axios.put(
         `https://667054bc0900b5f8724a3ee9.mockapi.io/user/user/${id}`,
         updatedUser
       );
       if (response.status === 200) {
         alert("Edit success");
-        edit.value = false;
+        this.edit = false;
         await loadData();
       } else {
         alert("Edit fail");
       }
-    };
+    }
 
-    const columns = [
-      {
-        title: "Email",
-        dataIndex: "email",
-        key: "email",
-      },
-      {
-        title: "First Name",
-        dataIndex: "firstName",
-        key: "firstName",
-      },
-      {
-        title: "Last Name",
-        dataIndex: "lastName",
-        key: "lastName",
-      },
-      {
-        title: "User Name",
-        dataIndex: "username",
-        key: "username",
-      },
-      {
-        title: "Role",
-        dataIndex: "role",
-        key: "role",
-      },
-      {
-        title: "Action",
-        key: "action",
-        slots: { customRender: "action" },
-      },
-    ];
-
-    return {
-      open,
-      deleteUser,
-      showModal,
-      dataSource,
-      handleUserAdded,
-      showUserId,
-      columns,
-      findUser,
-      handleOk,
-      edit,
-      editUser,
-      handleEdit,
-      tempEmail,
-    };
+  },
+  created() {
+    this.loadData();
   },
 };
 </script>

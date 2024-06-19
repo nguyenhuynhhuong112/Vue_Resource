@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen overflow-auto bg-gray-100 w-1/5 ">
+  <div class="min-h-screen overflow-auto bg-gray-100 w-1/5">
     <div class="bg-black py-2 pl-1">
       <h1 class="text-white">Company Name</h1>
     </div>
@@ -26,7 +26,6 @@
 </template>
 <script>
 import { navbarData } from "../../../mock/navbar";
-import { computed,  ref, watch } from "vue";
 import {
   HomeOutlined,
   FileOutlined,
@@ -36,7 +35,6 @@ import {
   FileTextOutlined,
   AppstoreAddOutlined,
 } from "@ant-design/icons-vue";
-import { useRouter } from "vue-router";
 export default {
   name: "NavBar",
   components: {
@@ -48,9 +46,13 @@ export default {
     FileTextOutlined,
     AppstoreAddOutlined,
   },
-  setup() {
-    const router = useRouter();
-    const navbarItemsByType = computed(() => {
+  data() {
+    return {
+      path: this.$route.path,
+    };
+  },
+  computed: {
+    navbarItemsByType() {
       return navbarData.reduce((acc, item) => {
         if (!acc[item.type]) {
           acc[item.type] = [];
@@ -58,17 +60,12 @@ export default {
         acc[item.type].push(item);
         return acc;
       }, {});
-    });
-     const path = ref(router.currentRoute.value.path);
-
-    watch(router.currentRoute, (newRoute) => {
-      path.value = newRoute.path;
-    });
-
-    return {
-      navbarItemsByType,
-      path,
-    };
+    },
+  },
+  watch: {
+    "$route.path"(newPath) {
+      this.path = newPath;
+    },
   },
 };
 </script>

@@ -71,8 +71,7 @@
   </a-form>
 </template>
 
-<script lang="ts">
-import { reactive, ref } from "vue";
+<script >
 import {
   Form,
   Input,
@@ -98,21 +97,20 @@ export default {
       required: true,
     },
   },
-  setup(props) {
-    const layout = {
+  data(){
+    return{
+       layout : {
       labelCol: { span: 8 },
       wrapperCol: { span: 16 },
-    };
-
-    const validateMessages = {
+    },
+     validateMessages : {
       required: "${label} is required!",
       types: {
         email: "${label} is not a valid email!",
         number: "${label} is not a valid number!",
       },
-    };
-
-    const formState = reactive({
+    },
+     formState : {
       user: {
         name: "",
         email: "",
@@ -121,29 +119,20 @@ export default {
         checkPass: "",
         resource: "",
       },
-    });
+    },
+    }
+  },
+  methods:{
+     onFinish(values)  {
+      this.onUserAdded(values.user);
+      this.$refs.formRef.resetFields();
+    },
 
-    const formRef = ref();
-
-    const onFinish = (values: any) => {
-      props.onUserAdded(values.user);
-      formRef.value.resetFields();
-    };
-
-    const checkPasswordConfirm = async (rule: any, value: string) => {
-      if (value !== formState.user.password) {
+    async checkPasswordConfirm(rule, value) {
+      if (value !== this.formState.user.password) {
         throw new Error("Passwords do not match");
       }
-    };
-
-    return {
-      layout,
-      validateMessages,
-      formState,
-      formRef,
-      onFinish,
-      checkPasswordConfirm,
-    };
-  },
+    },
+  }
 };
 </script>

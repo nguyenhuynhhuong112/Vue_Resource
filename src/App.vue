@@ -8,31 +8,28 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from "vue";
-import { useRouter } from "vue-router";
 import NavBar from "../src/components/navbar/NavBar.vue";
-
 export default {
   name: "App",
   components: {
     NavBar,
   },
-  setup() {
-    const router = useRouter();
-    const path = ref(router.currentRoute.value.path);
-    const email = localStorage.getItem("email");
-
-    onMounted(() => {
-      if (!email && path.value !== "/login") {
-        router.push("/login");
-      }
-    });
-
-    watch(router.currentRoute, (newRoute) => {
-      path.value = newRoute.path;
-    });
-
-    return { path };
+  data() {
+    return {
+      path: this.$route.path,
+    };
   },
+  created() {
+    const email = localStorage.getItem("email");
+    if (!email && this.path !== "/login") {
+      this.$router.push("/login");
+    }
+  },
+  watch: {
+    "$route.path"(newPath) {
+      this.path = newPath;
+    },
+  },
+
 };
 </script>
